@@ -1,0 +1,11 @@
+{
+  "source": "seatgeek",
+  "watchlist": [
+    {"query": "Boston Red Sox"},
+    {"query": "Boston Celtics"},
+    {"query": "Boston Bruins"},
+    {"query": "New England Patriots"}
+  ],
+  "venue_state": "MA",
+  "max_days_out": 90
+}
