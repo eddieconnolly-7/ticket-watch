@@ -1,0 +1,44 @@
+name: Ticket tracker
+
+on:
+  schedule:
+    - cron: "0 12 * * *"   # daily at 12:00 UTC (7-8am Boston time)
+  workflow_dispatch:         # lets you run it manually from the Actions tab
+    inputs:
+      demo:
+        description: "Send a sample email and phone alert (tests delivery)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Collect prices, build dashboard, send digest
+        run: python ticket_tracker.py ${{ inputs.demo && '--demo' || '' }}
+        env:
+          SEATGEEK_CLIENT_ID: ${{ secrets.SEATGEEK_CLIENT_ID }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          DASHBOARD_URL: ${{ secrets.DASHBOARD_URL }}
+
+      - name: Save price history and dashboard
+        run: |
+          git config user.name "ticket-bot"
+          git config user.email "ticket-bot@users.noreply.github.com"
+          git add prices.db dashboard.html
+          git commit -m "Daily update" || exit 0
+          git push
